@@ -1,23 +1,50 @@
 
 # openair-cn
-FROM openshift/base-centos7
-
-# TODO: Put the maintainer name in the image metadata
-# MAINTAINER Your Name <your@email.com>
-
-# TODO: Rename the builder environment variable to inform users about application you provide them
-# ENV BUILDER_VERSION 1.0
-
-# TODO: Set labels used in OpenShift to describe the builder image
-#LABEL io.k8s.description="Platform for building xyz" \
-#      io.k8s.display-name="builder x.y.z" \
-#      io.openshift.expose-services="8080:http" \
-#      io.openshift.tags="builder,x.y.z,etc."
+FROM centos:centos7
+MAINTAINER @dougbtv
+ENV BUILDER_VERSION 1.0
+LABEL io.k8s.description="OpenAir-CN" \
+      io.k8s.display-name="OpenAir-CN" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.tags="enb,enodeb,wireless,nfv,oai"
 
 # TODO: Install required packages here:
 # RUN yum install -y ... && yum clean all -y
-RUN yum install -y rubygems && yum clean all -y
-RUN gem install asdf
+RUN yum install -y epel-release && yum install -y \
+    git \
+    psmisc \
+    cmake3 \
+    cmake \
+    autoconf \
+    automake \
+    bison \
+    doxygen \
+    flex \
+    gdb \
+    subversion \
+    gnutls-devel \
+    libconfig-devel \
+    libgcrypt-devel \
+    libidn-devel \
+    libidn2-devel \
+    libtool \
+    lksctp-tools \
+    lksctp-tools-devel \
+    mariadb-devel \
+    nettle-devel \
+    openssl-devel \
+    gcc-c++ \
+    libxml2-devel \
+    mercurial \
+    swig \
+    pexpect \
+    phpMyAdmin \
+    check \
+    check-devel \
+    gtk3-devel \
+    guile-devel \
+    gccxml \
+    iperf
 
 # TODO (optional): Copy the builder files into /opt/app-root
 # COPY ./<builder_folder>/ /opt/app-root/
@@ -30,7 +57,8 @@ COPY ./s2i/bin/ /usr/libexec/s2i
 # RUN chown -R 1001:1001 /opt/app-root
 
 # This default user is created in the openshift/base-centos7 image
-USER 1001
+# (Doug: usually uncommented, below line.)
+# USER 1001
 
 # TODO: Set the default port for applications built using this image
 # EXPOSE 8080
