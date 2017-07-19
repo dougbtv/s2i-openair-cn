@@ -49,6 +49,9 @@ RUN yum install -y epel-release && yum install -y \
 # TODO (optional): Copy the builder files into /opt/app-root
 # COPY ./<builder_folder>/ /opt/app-root/
 
+# Other yum installs (mostly cause Doug is lazy and doesn't wanna run that above, again)
+RUN yum install -y sudo
+
 # Add the s2i scripts.
 ENV s2i_bin_version 0x00000deadbeef
 LABEL io.openshift.s2i.scripts-url=image:///usr/libexec/s2i
