@@ -20,7 +20,20 @@ if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
 fi
 
 echo "---> Installing application source..."
-cp -Rf /tmp/src/. ./
+mkdir -p /usr/src/openair-cn
+cp -Rf /tmp/src/. /usr/src/openair-cn
 
 echo "---> Building application from source..."
 # TODO: Add build steps for your application, eg npm install, bundle install, pip install, etc.
+
+echo "---> Executing initialize ./build_hss"
+cd /usr/src/openair-cn/scripts
+yes | ./build_hss -i
+
+echo "--> Build hss certs"
+cd /usr/src/openair-cn/scripts
+./check_hss_s6a_certificate /usr/local/etc/oai/freeDiameter hss.openair4G.eur
+
+echo "---> Executing proper ./build_hss"
+cd /usr/src/openair-cn/scripts
+./build_hss
