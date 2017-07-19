@@ -18,7 +18,35 @@ Seeing the s2i tool doesn't come with an OpenShift Origin install by default, we
 s2i v1.1.7
 ```
 
-## Create a template
+## Building with s2i
+
+Clone this repo.
+
+```
+[centos@openshift-master tmp]$ git clone https://github.com/dougbtv/s2i-openair-cn.git
+[centos@openshift-master tmp]$ cd s2i-openair-cn/
+```
+
+Clone the openair-cn into `/tmp` (in this example, could be anywhere). Then checkout the version you want to build.
+
+```
+[centos@openshift-master tmp]$ git clone https://gitlab.eurecom.fr/oai/openair-cn.git
+[centos@openshift-master tmp]$ cd openair-cn/
+[centos@openshift-master openair-cn]$ git checkout -b to_build 724542d0b59797b010af8c5df15af7f669c1e838
+```
+
+Before we kick off the build, we build the base image.
+
+```
+[root@openshift-master s2i-openair-cn]# docker build -t nfvpe/oai .
+```
+
+
+
+
+## Creating an s2i template
+
+This is how the templates here were created.
 
 ```
 [centos@openshift-master ~]$ s2i create openair-cn s2i-openair-cn
@@ -41,8 +69,3 @@ s2i v1.1.7
 ```
 
 (That's this repo, now)
-
-## The Dockerfile
-
-(more to come.)
-
