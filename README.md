@@ -1,10 +1,10 @@
-## s2i-openair-cn
+## s2i-openair-cn (a PoC)
 
-An s2i ([source-to-image](https://github.com/openshift/source-to-image)) template for building the OpenAirInterface openair-cn images.
+A PoC s2i ([source-to-image](https://github.com/openshift/source-to-image)) template for building the OpenAirInterface openair-cn images.
 
 ## OAI s2i building scheme
 
-I'm referencing my [blog article on using s2i custom builders](http://dougbtv.com/nfvpe/2016/12/09/openshift-s2i-custom-builder/)
+In particular I reference my [blog article on using s2i custom builders](http://dougbtv.com/nfvpe/2016/12/09/openshift-s2i-custom-builder/)
 
 ## Install the s2i tool
 
@@ -51,26 +51,30 @@ Then we can kick off the s2i build
 
 For more information you may reference [this openshift blog article](https://blog.openshift.com/remotely-push-pull-container-images-openshift/) on using the OpenShift registry.
 
+Firstly, create a project as the user you use to log into the dashboard (cockpit), to make it visible on the dashboard.
+
+Change to the project at the command line.
+
+```
+[root@openshift-master centos]# oc project oai
+```
+
 Create a service account (SA), called `pusher`
 
 ```
-[root@openshift-master centos]# oc create -f - << API
-
+$ oc create -f - << API
 apiVersion: v1
-
 kind: ServiceAccount
-
 metadata:
-
   name: pusher
-
 API
-serviceaccount "pusher" created
 ```
 
+Add the `image-builder` role to the user we just created.
+
 ```
-[root@openshift-master centos]# oc policy add-role-to-user system:image-builder system:serviceaccount:pushed:pusher
-role "system:image-builder" added: "system:serviceaccount:pushed:pusher"
+[root@openshift-master centos]# oc policy add-role-to-user system:image-builder system:serviceaccount:oai:pusher
+role "system:image-builder" added: "system:serviceaccount:oai:pusher"
 ```
 
 Describe that service account
@@ -90,7 +94,7 @@ Tokens:             pusher-token-40qhx
                     pusher-token-zn8mf
 ```
 
-Describe the token, the resulting token will be our password when we login.
+Describe the token, the resulting `token:` property will be our password when we login.
 
 ```
 [root@openshift-master centos]# oc describe secret pusher-token-40qhx
@@ -110,34 +114,30 @@ namespace:  7 bytes
 service-ca.crt: 2186 bytes
 ```
 
-
-
-```
-[root@openshift-master centos]# oc create -f - <<API
-
-apiVersion: v1
-
-kind: ImageStream
-
-metadata:
-
-  annotations:
-
-    description: Keeps track of changes in the application image
-
-  name: myimage
-
-API
-imagestream "myimage" created
-```
-
 Discovery the registry location (if you have a better DNS setup, this might be more simple)...
 
 ```
 [centos@openshift-master ~]$ registrylocation=$(echo "$(oc describe service docker-registry --namespace=default | grep "^IP" | awk '{print $2}'):5000")
 ```
 
-Login, using anything for the username, and password should be the token from above.
+Create an image stream, pay attention to the `name:` property. We will tag our image with this name.
+
+```
+$ oc create -f - <<API
+apiVersion: v1
+kind: ImageStream
+metadata:
+  name: oai-hss-poc
+spec:
+  tags:
+  - from:
+      kind: DockerImage
+      name: $registrylocation/oai/oai-hss-poc
+    name: latest
+API
+```
+
+Login, using anything (literally, anything) for the username, and password should be the token from above.
 
 ```
 [root@openshift-master centos]# docker login $registrylocation
@@ -146,14 +146,19 @@ Password:
 Login Succeeded
 ```
 
-You can now tag an image built with s2i...
+You can now tag an image built with s2i... It's important that you tag the name in the format `$registrylocation/$project_name/$image_stream_name` 
 
 ```
-[root@openshift-master centos]# docker tag nfvpe/oai-hss-poc $registrylocation/default/oai-hss-poc
-[root@openshift-master centos]# docker push $registrylocation/default/oai-hss-poc
+[root@openshift-master centos]# docker tag nfvpe/oai-hss-poc $registrylocation/oai/oai-hss-poc
 ```
 
-(Currently bombs out for me.)
+And finally, you can push it.
+
+```
+[root@openshift-master centos]# docker push $registrylocation/oai/oai-hss-poc
+```
+
+In the OpenShift dashboard, you can now navigate to the project (in this case, I have named mine "oai"), to "Builds", to "Images", and then you should see an entry titled "oai-hss-poc"
 
 ## Creating an s2i template
 
